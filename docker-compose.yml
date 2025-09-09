@@ -1,0 +1,163 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Data Warehouse
+  postgres:
+    image: postgres:13
+    container_name: ecommerce_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ecommerce_db}
+      POSTGRES_USER: ${POSTGRES_USER:-ecommerce_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ecommerce_pass}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init:/docker-entrypoint-initdb.d
+    networks:
+      - ecommerce_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ecommerce_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Apache Spark Master
+  spark-master:
+    image: jupyter/pyspark-notebook:spark-3.4.1
+    container_name: ecommerce_spark_master
+    user: root
+    environment:
+      - SPARK_MODE=master
+      # - GRANT_SUDO=yes
+      - SPARK_MASTER_HOST=spark-master
+    command: >
+      bash -lc "
+      pip install sqlalchemy psycopg2-binary python-dotenv &&
+      wget -O /usr/local/spark/jars/postgresql-42.3.1.jar https://jdbc.postgresql.org/download/postgresql-42.3.1.jar &&
+      /usr/local/spark/sbin/start-master.sh --host spark-master --port 7077 --webui-port 8080 &&
+      tail -f /dev/null
+      "
+    ports:
+      - "7077:7077"
+      - "8080:8080"
+    volumes:
+      # - D:/M2DataScience/ecommerce-analytics-pipeline/data/raw:/opt/spark-data/raw
+      - ./src:/opt/spark-apps
+      - ./data:/opt/spark-data
+      - ./jars:/opt/bitnami/spark/jars
+    networks:
+      - ecommerce_network
+    depends_on:
+      - postgres
+    # healthcheck:
+    #   disable: true
+
+  spark-worker-1:
+    image: jupyter/pyspark-notebook:spark-3.4.1
+    container_name: ecommerce_spark_worker_1
+    user: root
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    command: >
+      bash -lc "
+      pip install sqlalchemy psycopg2-binary python-dotenv &&
+      /usr/local/spark/sbin/start-worker.sh spark://spark-master:7077 &&
+      tail -f /dev/null
+      "
+    volumes:
+      # - D:/M2DataScience/ecommerce-analytics-pipeline/data/raw:/opt/spark-data/raw
+      - ./src:/opt/spark-apps
+      - ./data:/opt/spark-data
+      - ./jars:/opt/bitnami/spark/jars
+    networks:
+      - ecommerce_network
+    depends_on:
+      - spark-master
+    # healthcheck:
+    #   disable: true
+
+  spark-worker-2:
+    image: jupyter/pyspark-notebook:spark-3.4.1
+    container_name: ecommerce_spark_worker_2
+    user: root
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    command: >
+      bash -lc "
+      pip install sqlalchemy psycopg2-binary python-dotenv &&
+      /usr/local/spark/sbin/start-worker.sh spark://spark-master:7077 &&
+      tail -f /dev/null
+      "
+    volumes:
+      # - D:/M2DataScience/ecommerce-analytics-pipeline/data/raw:/opt/spark-data/raw
+      - ./src:/opt/spark-apps
+      - ./data:/opt/spark-data
+      - ./jars:/opt/bitnami/spark/jars
+    networks:
+      - ecommerce_network
+    depends_on:
+      - spark-master
+    # healthcheck:
+    #   disable: true
+
+
+  # PgAdmin for Database Management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ecommerce_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@admin.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - ecommerce_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  
+  #Jupyter
+  jupyter:
+    image: jupyter/pyspark-notebook:spark-3.4.1
+    container_name: ecommerce_jupyter
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - SPARK_MASTER=spark://spark-master:7077
+      - JUPYTER_TOKEN=mysecuretoken123    
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebooks:/home/jovyan/work
+      - ./src:/home/jovyan/src
+      - ./data:/home/jovyan/data
+    networks:
+      - ecommerce_network
+    depends_on:
+      - spark-master
+    healthcheck:
+      disable: true
+
+
+  # Redis for Caching (Optional - for advanced features)
+  redis:
+    image: redis:7-alpine
+    container_name: ecommerce_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - ecommerce_network
+
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+
+networks:
+  ecommerce_network:
+    driver: bridge
