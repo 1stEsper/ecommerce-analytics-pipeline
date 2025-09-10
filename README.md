@@ -7,25 +7,25 @@ A scalable, containerized ETL pipeline that ingests ecommerce datasets, loads ra
 ## 📦 Project Structure
 ecommerce-analytics-pipeline/
 ├── data/ 
-│   ├── raw/ #Raw data files (csv)
-│   │   ├── olist_customers_dataset.csv
-│   │   ├── olist_orders_dataset.csv
-│   │   ├── olist_order_items_dataset.csv
-│   │   └── olist_products_dataset.csv
-│   ├── processed/
-│   ├── streaming/
-│   └── warehouse/
+│   ├── raw/ #Fichiers de données brutes (csv)
+│   │   ├── olist_customers_dataset.csv
+│   │   ├── olist_orders_dataset.csv
+│   │   ├── olist_order_items_dataset.csv
+│   │   └── olist_products_dataset.csv
+│   ├── processed/
+│   ├── streaming/
+│   └── warehouse/
 ├── src/
-│   ├── extract/
-│   │   └── data_loader.py #Loads CSVs to PostgreSQL
-│   ├── load/
-│   └── transform/
-│       └── spark_etl.py # ETL and analytics job
+│   ├── extract/
+│   │   └── data_loader.py #Charge les CSV dans PostgreSQL
+│   ├── load/
+│   └── transform/
+│       └── spark_etl.py # ETL et job d'analyse
 ├── sql/
-│   └── init/
-│       └── 01_create_schemas.sql
-├── docker-compose.yml #Service definition
-├── .env # Environment variables (DB creds)
+│   └── init/
+│       └── 01_create_schemas.sql
+├── docker-compose.yml #Définition des services
+├── .env # Variables d'environnement (DB creds)
 └── README.md
 
 
