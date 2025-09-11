@@ -5,6 +5,7 @@ A scalable, containerized ETL pipeline that ingests ecommerce datasets, loads ra
 ---
 
 ## 📦 Project Structure
+```
 ecommerce-analytics-pipeline/
 ├── data/ 
 │   ├── raw/ #Fichiers de données brutes (csv)
@@ -27,7 +28,7 @@ ecommerce-analytics-pipeline/
 ├── docker-compose.yml #Définition des services
 ├── .env # Variables d'environnement (DB creds)
 └── README.md
-
+```
 
 ---
 
@@ -35,9 +36,10 @@ ecommerce-analytics-pipeline/
 
 ### 1. Clone This Repository
 
+```
 git clone https://github.com/1stEsper/ecommerce-analytics-pipeline.git
 cd ecommerce-analytics-pipeline
-
+```
 
 ### 2. Place Data Files
 
@@ -46,14 +48,16 @@ Copy your raw Olist CSV files into `data/raw/` (or as needed based on your pipel
 ### 3. Set Up Environment Variables
 
 Create a `.env` file:
-
+```
 POSTGRES_DB=ecommerce_db
 POSTGRES_USER=ecommerce_user
 POSTGRES_PASSWORD=ecommerce_pass
+```
 
 ### 4. Build and Start Docker Services
-
+```
 docker-compose up -d
+```
 
 
 Services started:
@@ -66,20 +70,20 @@ Services started:
 ### 5. Load Raw Data into PostgreSQL
 
 Run the data loader (from the host):
-
+```
 docker exec ecommerce_spark_master spark-submit
 --master spark://spark-master:7077
 --deploy-mode client
 /opt/spark-apps/extract/data_loader.py
-
+```
 
 ### 6. Run the ETL Pipeline
-
+```
 docker exec ecommerce_spark_master spark-submit
 --master spark://spark-master:7077
 --deploy-mode client
 /opt/spark-apps/transform/spark_etl.py
-
+```
 
 ---
 
