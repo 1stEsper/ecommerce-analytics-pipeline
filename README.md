@@ -8,25 +8,25 @@ A scalable, containerized ETL pipeline that ingests ecommerce datasets, loads ra
 ```
 ecommerce-analytics-pipeline/
 ├── data/ 
-│   ├── raw/ #Fichiers de données brutes (csv)
+│   ├── raw/ #Raw data files (csv)
 │   │   ├── olist_customers_dataset.csv
 │   │   ├── olist_orders_dataset.csv
 │   │   ├── olist_order_items_dataset.csv
 │   │   └── olist_products_dataset.csv
-│   ├── processed/
+│   ├── processed/ # Transformed data
 │   ├── streaming/
 │   └── warehouse/
 ├── src/
 │   ├── extract/
-│   │   └── data_loader.py #Charge les CSV dans PostgreSQL
+│   │   └── data_loader.py # Loads CSVs to PostgreSQL 
 │   ├── load/
 │   └── transform/
-│       └── spark_etl.py # ETL et job d'analyse
+│       └── spark_etl.py # ETL and analytics job
 ├── sql/
-│   └── init/
-│       └── 01_create_schemas.sql
-├── docker-compose.yml #Définition des services
-├── .env # Variables d'environnement (DB creds)
+│   └── init/ # Database initialization
+│       └── 01_create_schemas.sql 
+├── docker-compose.yml # Service definitions
+├── .env # Environment variables (DB creds)
 └── README.md
 ```
 
@@ -43,7 +43,7 @@ cd ecommerce-analytics-pipeline
 
 ### 2. Place Data Files
 
-Copy your raw Olist CSV files into `data/raw/` (or as needed based on your pipeline).
+Copy the raw Olist CSV files into `data/raw/`
 
 ### 3. Set Up Environment Variables
 
@@ -67,6 +67,13 @@ Services started:
 - Apache Spark Master & Workers
 - Jupyter notebook server
 
+Access the services: 
+- Spark UI : http://localhost:8080
+- Jupyter Lab : http://localhost:8888 
+- PgAdmin : http://localhost:5050 (admin@admin.com / admin123)
+- PostgresSQL : localhost:5432
+
+
 ### 5. Load Raw Data into PostgreSQL
 
 Run the data loader (from the host):
@@ -76,6 +83,9 @@ docker exec ecommerce_spark_master spark-submit
 --deploy-mode client
 /opt/spark-apps/extract/data_loader.py
 ```
+- When u execute this code, u can go to localhost **Spark UI** if u see in the **Completed Applications** table, **State** is **FINISHED**, This confirms that the `data_loader.py` script was submitted to the Spark cluster and ran to completion without crashing. The process was successful from Spark's perspective.
+
+- The next step is to verify if the data was successfully written to the PostgreSQL database (write some queries to test).
 
 ### 6. Run the ETL Pipeline
 ```
